@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K-Means Lab</title>
+<meta name="description" content="Interactive study guide for K-means clustering: raw dataset, an animated distance-and-centroid walkthrough, a video-style quiz player, essay prompts, and a glossary.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <header class="hero">
+    <span class="eyebrow">Unsupervised Learning · Study Guide</span>
+    <h1>K-Means Clustering</h1>
+    <p class="dek">How a handful of centroids learn to sort customers into segments — the logic, the distance math, and a step-by-step walkthrough you can click through.</p>
+    <div class="hero-meta">
+      <span class="pill">10 short-answer questions</span>
+      <span class="pill">5 essay prompts</span>
+      <span class="pill">Interactive walkthrough</span>
+      <span class="pill">Glossary</span>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ CONCEPT ============ -->
+    <section class="section" id="concept">
+      <div class="section-head">
+        <span class="section-num">01 — The Big Idea</span>
+        <h2>Grouping by nearest mean</h2>
+      </div>
+      <p class="section-lede">Clustering sorts unlabeled data into groups so that points inside a group resemble each other more than they resemble points outside it. K-means does this with one simple, repeated move: measure the distance from every point to a small set of centers, and let the nearest center claim the point.</p>
+
+      <div class="process-strip">
+        <div class="proc-card">
+          <div class="proc-num">1</div>
+          <h3>Choose k</h3>
+          <p>Decide how many segments to look for — set by the problem, e.g. k = 2.</p>
+        </div>
+        <div class="proc-card">
+          <div class="proc-num">2</div>
+          <h3>Seed centroids</h3>
+          <p>Pick starting centers, often just k real data points chosen at random.</p>
+        </div>
+        <div class="proc-card">
+          <div class="proc-num">3</div>
+          <h3>Assign</h3>
+          <p>For each remaining point, compute distance to every centroid — join the nearest.</p>
+        </div>
+        <div class="proc-card">
+          <div class="proc-num">4</div>
+          <h3>Update</h3>
+          <p>Recompute the centroid as the mean of its cluster's members.</p>
+        </div>
+        <div class="repeat-badge">↻ repeat 3 – 4 for every remaining point, until assignments stop changing</div>
+      </div>
+    </section>
+
+    <!-- ============ DEMO ============ -->
+    <section class="section" id="demo">
+      <div class="section-head">
+        <span class="section-num">02 — Watch It Work</span>
+        <h2>Segmenting 8 shoppers into 2 clusters</h2>
+      </div>
+      <p class="section-lede">Here's the raw data first. Then step through the algorithm one customer at a time — each click computes the Euclidean distance to both centroids live, assigns the point, and — where it changes — slides the centroid to its new mean.</p>
+
+      <div class="demo-card">
+        <div class="dataset-block">
+          <div class="dataset-head">
+            <span class="dataset-title">Dataset — 8 customers</span>
+            <span class="dataset-sub">x = visit frequency / mo · y = avg. order value ($)</span>
+          </div>
+          <table class="dataset-table">
+            <thead><tr><th>Customer</th><th>x</th><th>y</th><th>Cluster</th></tr></thead>
+            <tbody id="dataset-body"></tbody>
+          </table>
+        </div>
+
+        <div class="chart-wrap">
+          <svg class="chart-svg" id="chart" viewBox="0 0 640 400" role="img" aria-label="Scatter plot of customers by visit frequency and order value, colored by cluster assignment">
+            <g class="gridlines" id="gridlines"></g>
+            <g class="axes" id="axes"></g>
+            <g id="calc-lines"></g>
+            <g id="points-layer"></g>
+            <g id="centroids-layer">
+              <circle id="centroid-k1" class="centroid centroid-k1" r="11"></circle>
+              <circle id="centroid-k2" class="centroid centroid-k2" r="11"></circle>
+              <text id="centroid-k1-label" class="centroid-label">k1</text>
+              <text id="centroid-k2-label" class="centroid-label">k2</text>
+            </g>
+          </svg>
+
+          <div class="legend">
+            <span class="legend-title">Legend</span>
+            <div class="legend-item"><span class="legend-swatch" style="background:var(--k1)"></span>k1 — occasional, low spend</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:var(--k2)"></span>k2 — frequent, high spend</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:var(--surface);border:2px dashed var(--unassigned)"></span>Not yet assigned</div>
+            <div class="legend-item"><span class="legend-swatch centroid-swatch" style="color:var(--ink)"></span>Centroid (cluster mean)</div>
+          </div>
+        </div>
+
+        <p class="chart-caption">Illustrative dataset · x = monthly visit frequency, y = average order value ($). c3 (30, 800) and c4 (18, 300) are the two customers referenced in the quiz and essay prompts below.</p>
+
+        <div class="console-wrap">
+          <div class="step-header">
+            <span class="step-label" id="step-label">Step 1 / 8</span>
+            <span class="step-title" id="step-title">Seed the centroids</span>
+          </div>
+          <p class="narrative" id="narrative"></p>
+          <div class="formula-banner" id="formula-banner"><span class="fx">d</span> = √( (x₂−x₁)² + (y₂−y₁)² )</div>
+          <div class="calc-console" id="calc-console"></div>
+        </div>
+
+        <div class="controls">
+          <button id="btn-prev">‹ Prev</button>
+          <button id="btn-next" class="primary">Next ›</button>
+          <button id="btn-play">▶ Play</button>
+          <div class="stepper" id="stepper"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ QUIZ ============ -->
+    <section class="section" id="quiz">
+      <div class="section-head">
+        <span class="section-num">03 — Check Yourself</span>
+        <h2>Short-answer quiz</h2>
+      </div>
+      <p class="section-lede">Played like a video — each question holds on screen, then the answer cuts in. Press play and watch, or step through it yourself.</p>
+
+      <div class="quiz-player">
+        <div class="qp-progress" id="qp-progress"></div>
+        <div class="qp-stage">
+          <span class="qp-eyebrow" id="qp-eyebrow">Question 1 of 10</span>
+          <h3 class="qp-question" id="qp-question"></h3>
+          <div class="qp-answer-wrap" id="qp-answer-wrap">
+            <span class="qp-answer-label">Answer</span>
+            <p class="qp-answer" id="qp-answer"></p>
+          </div>
+          <button class="qp-reveal" id="qp-reveal">Reveal answer</button>
+        </div>
+        <div class="qp-controls">
+          <button id="qp-prev">‹ Prev</button>
+          <button id="qp-play" class="primary">▶ Play</button>
+          <button id="qp-next">Next ›</button>
+          <span class="spacer"></span>
+          <span class="qp-count" id="qp-count">1 / 10</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ESSAY ============ -->
+    <section class="section" id="essay">
+      <div class="section-head">
+        <span class="section-num">04 — Go Deeper</span>
+        <h2>Essay prompts</h2>
+      </div>
+      <p class="section-lede">Draft full responses using the principles above — the interactive walkthrough is built to help you work through prompts 1, 3, and 4 by hand.</p>
+      <div class="essay-list" id="essay-list"></div>
+    </section>
+
+    <!-- ============ GLOSSARY ============ -->
+    <section class="section" id="glossary">
+      <div class="section-head">
+        <span class="section-num">05 — Reference</span>
+        <h2>Glossary</h2>
+      </div>
+      <table class="glossary-table">
+        <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+        <tbody id="glossary-body"></tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <footer>K-Means Clustering study guide — built for review and self-testing.</footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
